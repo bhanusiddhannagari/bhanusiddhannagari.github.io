@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Bachelor Room Multi-Group Expense Manager</title>
+	<link rel="stylesheet" href="splitter-styles.css">
+	<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+	<div class="container">
+		<header class="header">
+			<h1><i class="fas fa-home"></i> Bachelor Room Multi-Group Expense Manager</h1>
+			<p class="subtitle">Track, split, and manage expenses across roommates, trips, and groups</p>
+			<button id="theme-toggle" class="btn btn-secondary btn-small mt-15">
+				<i class="fas fa-adjust"></i> <span class="theme-label">Light</span> Mode
+			</button>
+		</header>
+		<main class="main-content">
+			<section class="storage-section">
+				<h2><i class="fas fa-folder-open"></i> Data Storage Location</h2>
+				<div class="storage-controls">
+					<div class="storage-info">
+						<div class="storage-status">
+							<span class="status-indicator" id="storage-status">📁</span>
+							<span id="storage-path">Click "Choose Folder" to select where to save your data</span>
+						</div>
+						<div class="storage-actions">
+							<button id="choose-folder-btn" class="btn btn-primary"><i class="fas fa-folder-open"></i> Choose Folder</button>
+							<button id="save-data-btn" class="btn btn-secondary" disabled><i class="fas fa-save"></i> Save Now</button>
+							<button id="load-data-btn" class="btn btn-secondary"><i class="fas fa-folder-open"></i> Load Data</button>
+						</div>
+					</div>
+					<div class="auto-save-settings">
+						<label class="toggle-switch">
+							<input type="checkbox" id="auto-save-toggle" checked>
+							<span class="toggle-slider"></span>
+							<span class="toggle-label">Auto-save to file</span>
+						</label>
+						<div class="save-info"><small>Last saved: <span id="last-save-time">Never</span></small></div>
+					</div>
+				</div>
+				<div class="browser-compatibility hidden" id="compatibility-warning">
+					<div class="warning-message"><i class="fas fa-exclamation-triangle"></i><div><strong>Limited Browser Support</strong><p>Local file storage requires Chrome or Edge. Your data will be saved in browser storage instead.</p></div></div>
+				</div>
+			</section>
+			<section class="groups-section">
+				<h2><i class="fas fa-layer-group"></i> Manage Groups (Rooms / Trips)</h2>
+				<div class="group-controls">
+					<div class="current-group-display">
+						<label for="group-selector">Current Group:</label>
+						<select id="group-selector" class="group-selector"><option value="default">Default Group</option></select>
+					</div>
+					<div class="group-actions">
+						<input type="text" id="new-group-name" placeholder="Enter group name (e.g., Flat A, Goa Trip)" class="group-input">
+						<button id="add-group-btn" class="btn btn-primary"><i class="fas fa-plus"></i> New Group</button>
+						<button id="delete-group-btn" class="btn btn-danger btn-small"><i class="fas fa-trash"></i> Delete Group</button>
+					</div>
+				</div>
+				<div class="group-info"><div class="group-stats" id="group-stats"><span class="stat-item"><i class="fas fa-users"></i><span id="group-friends-count">0</span> participants</span><span class="stat-item"><i class="fas fa-receipt"></i><span id="group-expenses-count">0</span> expenses</span><span class="stat-item"><i class="fas fa-money-bill"></i>₹<span id="group-total-amount">0.00</span> total</span></div></div>
+			</section>
+			<section class="friends-section">
+				<h2><i class="fas fa-user-friends"></i> Manage Participants</h2>
+				<div class="add-friend-form"><div class="form-row"><input type="text" id="friend-name" placeholder="Enter participant's name" required><button id="add-friend-btn" class="btn btn-primary"><i class="fas fa-user-plus"></i> Add Participant</button></div></div>
+				<div id="friends-list" class="friends-list"><div class="empty-state"><i class="fas fa-user-plus"></i><p>Add participants to start splitting expenses</p></div></div>
+			</section>
+			<section class="recurring-section">
+				<h2><i class="fas fa-redo-alt"></i> Recurring Expenses</h2>
+				<form id="recurring-form" class="expense-form">
+					<div class="form-row"><div class="form-group"><label for="recurring-description">Description</label><input type="text" id="recurring-description" placeholder="e.g., Monthly Rent" required></div><div class="form-group"><label for="recurring-amount">Amount (₹)</label><input type="number" id="recurring-amount" placeholder="0.00" step="0.01" required></div></div>
+					<div class="form-row"><div class="form-group"><label for="recurring-category">Category</label><select id="recurring-category" required><option value="rent">🏠 Rent</option><option value="utilities">⚡ Utilities</option><option value="groceries">🛒 Groceries</option><option value="transportation">🚌 Transportation</option><option value="food">🍽️ Food & Dining</option><option value="entertainment">🎬 Entertainment</option><option value="healthcare">🏥 Healthcare</option><option value="education">📚 Education</option><option value="miscellaneous">📦 Miscellaneous</option></select></div><div class="form-group"><label for="recurring-frequency">Frequency</label><select id="recurring-frequency" required><option value="monthly">Monthly</option><option value="weekly">Weekly</option><option value="yearly">Yearly</option></select></div></div>
+					<div class="form-row"><div class="form-group"><label for="recurring-start">Start Date</label><input type="date" id="recurring-start" required></div><div class="form-group"><label for="recurring-paidby">Paid By (Default)</label><select id="recurring-paidby" required><option value="">Select who pays</option></select></div></div>
+					<div class="form-row"><div class="form-group"><label for="recurring-group">Group</label><select id="recurring-group" required><option value="default">Default Group</option></select></div><div class="form-group"><label for="recurring-split">Split Method</label><select id="recurring-split" required><option value="equal">Equal</option><option value="percentage">Percentage</option><option value="custom">Custom</option></select></div></div>
+					<button type="submit" class="btn btn-primary btn-small"><i class="fas fa-plus"></i> Add Recurring</button>
+				</form>
+				<div id="recurring-list" class="expenses-list mt-15"><div class="empty-state"><i class="fas fa-redo-alt"></i><p>No recurring expenses defined.</p></div></div>
+			</section>
+			<section class="expense-form-section">
+				<h2><i class="fas fa-receipt"></i> Add Shared Expense</h2>
+				<form id="expense-form" class="expense-form">
+					<div class="form-row"><div class="form-group"><label for="expense-description">Description</label><input type="text" id="expense-description" placeholder="e.g., Monthly Rent / Electricity Bill / Dinner" required></div><div class="form-group"><label for="expense-amount">Total Amount (₹)</label><input type="number" id="expense-amount" placeholder="0.00" step="0.01" required></div></div>
+					<div class="form-row"><div class="form-group"><label for="expense-paidby">Paid By</label><select id="expense-paidby" required><option value="">Select who paid</option></select></div><div class="form-group"><label for="expense-date">Date</label><input type="date" id="expense-date" required></div></div>
+					<div class="form-row"><div class="form-group"><label for="expense-group">Group</label><select id="expense-group" required><option value="default">Default Group</option></select></div><div class="form-group"><label for="expense-category">Category</label><select id="expense-category" required><option value="">Select Category</option><option value="rent">🏠 Rent</option><option value="groceries">🛒 Groceries</option><option value="utilities">⚡ Utilities</option><option value="transportation">🚌 Transportation</option><option value="food">🍽️ Food & Dining</option><option value="entertainment">🎬 Entertainment</option><option value="healthcare">🏥 Healthcare</option><option value="education">📚 Education</option><option value="miscellaneous">📦 Miscellaneous</option></select></div></div>
+					<div class="split-type-section"><h3><i class="fas fa-scissors"></i> How to Split?</h3><div class="split-options"><label class="split-option"><input type="radio" name="split-type" value="equal" checked><span class="option-content"><i class="fas fa-equals"></i><span>Split Equally</span></span></label><label class="split-option"><input type="radio" name="split-type" value="percentage"><span class="option-content"><i class="fas fa-percentage"></i><span>By Percentage</span></span></label><label class="split-option"><input type="radio" name="split-type" value="custom"><span class="option-content"><i class="fas fa-edit"></i><span>Custom Amounts</span></span></label></div></div>
+					<div id="split-details" class="split-details"></div>
+					<button type="submit" class="btn btn-primary btn-large"><i class="fas fa-plus"></i> Add Expense & Split</button>
+				</form>
+			</section>
+			<section class="summary-section"><div class="section-header"><h2><i class="fas fa-balance-scale"></i> Balance Summary</h2><div class="summary-controls"><button id="export-balances-btn" class="btn btn-secondary"><i class="fas fa-download"></i> Export Balances</button></div></div><div id="balance-summary" class="balance-cards"><div class="empty-state"><i class="fas fa-balance-scale"></i><p>No expenses to show. Add an expense to see who owes whom!</p></div></div></section>
+			<section class="history-section"><div class="section-header"><h2><i class="fas fa-history"></i> Expense History</h2><div class="history-controls"><button id="export-expenses-btn" class="btn btn-secondary"><i class="fas fa-download"></i> Export Expenses</button><button id="export-expense-summary-btn" class="btn btn-secondary"><i class="fas fa-chart-line"></i> Export Summary</button><button id="export-all-data-btn" class="btn btn-secondary"><i class="fas fa-file-export"></i> Export All Data</button><button id="import-data-btn" class="btn btn-secondary"><i class="fas fa-file-import"></i> Import Data</button><button id="clear-all-expenses-btn" class="btn btn-danger"><i class="fas fa-trash"></i> Clear All</button><input type="file" id="import-file-input" accept=".json" style="display:none;"></div></div><div class="history-filters"><div class="filter-group"><label for="filter-group">Filter by Group:</label><select id="filter-group"><option value="all">All Groups</option><option value="current">Current Group Only</option></select></div><div class="filter-group"><label for="filter-category">Filter by Category:</label><select id="filter-category"><option value="all">All Categories</option><option value="rent">🏠 Rent</option><option value="groceries">🛒 Groceries</option><option value="utilities">⚡ Utilities</option><option value="transportation">🚌 Transportation</option><option value="food">🍽️ Food & Dining</option><option value="entertainment">🎬 Entertainment</option><option value="healthcare">🏥 Healthcare</option><option value="education">📚 Education</option><option value="miscellaneous">📦 Miscellaneous</option></select></div><div class="filter-group"><label for="filter-date-range">Date Range:</label><select id="filter-date-range"><option value="all">All Time</option><option value="week">Last 7 Days</option><option value="month">Last 30 Days</option><option value="custom">Custom Range</option></select></div></div><div id="expenses-history" class="expenses-list"><div class="empty-state"><i class="fas fa-receipt"></i><p>No shared expenses yet. Add your first expense above!</p></div></div></section>
+			<section class="settlements-section"><h2><i class="fas fa-handshake"></i> Settle Debts</h2><div id="settlement-suggestions" class="settlement-cards"><div class="empty-state"><i class="fas fa-handshake"></i><p>All debts are settled! 🎉</p></div></div></section>
+			<section class="chart-section"><h2><i class="fas fa-chart-pie"></i> Group Category Breakdown</h2><div class="chart-container"><canvas id="group-category-chart" height="260"></canvas></div></section>
+		</main>
+		<footer class="footer"><p>&copy; 2025 Bachelor Room Multi-Group Expense Manager. Fair sharing made easy!</p></footer>
+	</div>
+	<div id="settlement-modal" class="modal hidden"><div class="modal-content"><span class="close-modal">&times;</span><h3>Record Settlement</h3><p id="settlement-details"></p><div class="modal-actions"><button id="confirm-settlement" class="btn btn-primary">Mark as Settled</button><button id="cancel-settlement" class="btn btn-secondary">Cancel</button></div></div></div>
+	<div id="notification" class="notification hidden"></div>
+	<script src="splitter-script.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+	<script>document.addEventListener('DOMContentLoaded',()=>{const savedTheme=localStorage.getItem('expense_theme');if(savedTheme==='dark'){document.body.classList.add('dark');}const toggle=document.getElementById('theme-toggle');if(toggle){toggle.addEventListener('click',()=>{document.body.classList.toggle('dark');const mode=document.body.classList.contains('dark')?'dark':'light';localStorage.setItem('expense_theme',mode);toggle.querySelector('.theme-label').textContent=mode==='dark'?'Dark':'Light';});}});</script>
+</body>
+</html>
