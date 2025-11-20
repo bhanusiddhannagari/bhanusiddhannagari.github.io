@@ -159,17 +159,26 @@
       
       // Handle specific mobile errors
       if (event.error === 'no-speech') {
-        console.log('[Speech] No speech detected, will auto-restart');
+        console.log('[Speech] No speech detected - will auto-restart');
+        // Don't stop shouldBeActive, let it auto-restart in onend
+        return;
       } else if (event.error === 'audio-capture') {
         console.error('[Speech] Audio capture failed - check microphone');
+        shouldBeActive = false;
       } else if (event.error === 'not-allowed') {
         console.error('[Speech] Microphone permission denied');
         shouldBeActive = false;
       } else if (event.error === 'network') {
-        console.error('[Speech] Network error - check connection');
+        console.error('[Speech] Network error - will retry');
+        // Don't stop shouldBeActive for network errors, let it retry
+        return;
+      } else if (event.error === 'aborted') {
+        console.log('[Speech] Recognition aborted by user');
+        return; // Don't call onError for user-initiated abort
       }
       
-      if (onError) {
+      // Only call onError for serious errors
+      if (onError && event.error !== 'no-speech' && event.error !== 'aborted' && event.error !== 'network') {
         onError(event);
       }
     };
@@ -188,14 +197,11 @@
       isRecognizing = false;
       console.log('[Speech] Recognition ended, shouldBeActive:', shouldBeActive);
       
-      if (onEnd) {
-        onEnd();
-      }
-      
-      // Only auto-restart if unexpectedly ended while should be active
-      if (shouldBeActive && !restartTimeout) {
-        const delay = isMobile ? 500 : 200;
-        console.log(`[Speech] Unexpected end - scheduling restart in ${delay}ms`);
+      // Disable auto-restart on mobile to avoid notification sound repeating
+      // On desktop, allow auto-restart for better continuous experience
+      if (shouldBeActive && !restartTimeout && !isMobile) {
+        const delay = 50;
+        console.log(`[Speech] Auto-restarting in ${delay}ms`);
         
         restartTimeout = setTimeout(() => {
           restartTimeout = null;
@@ -208,6 +214,11 @@
             }
           }
         }, delay);
+      } else if (!shouldBeActive) {
+        // Only call onEnd if we're actually stopping (not restarting)
+        if (onEnd) {
+          onEnd();
+        }
       }
     };
 
