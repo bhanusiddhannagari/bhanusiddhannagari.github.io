@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="description" content="Real-time speech-to-text messaging with live word streaming" />
+  <meta name="theme-color" content="#0f0f0f" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>Speech Rooms - Real-time Speech-to-Text Messaging</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="icon" type="image/png" href="../assets/favicon.png" />
+</head>
+<body>
+  <!-- Header -->
+  <header role="banner">
+    <div class="header-content">
+      <h1>
+        <svg class="header-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+          <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+          <line x1="12" y1="19" x2="12" y2="23"></line>
+          <line x1="8" y1="23" x2="16" y2="23"></line>
+        </svg>
+        Speech Rooms
+      </h1>
+      <p class="tagline">Real-time speech-to-text with word-by-word streaming</p>
+    </div>
+  </header>
+
+  <!-- Main Content with Sidebar Layout -->
+  <div class="layout-container">
+    
+    <!-- Sidebar -->
+    <aside id="sidebar" class="sidebar" role="complementary" aria-label="Control panel">
+      <button id="toggle-sidebar" class="toggle-btn" aria-label="Toggle sidebar" aria-expanded="true">
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+          <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/>
+        </svg>
+      </button>
+      
+      <div class="sidebar-content">
+        <!-- Room Management Section -->
+        <section id="room-section" class="card" aria-label="Room Management">
+          <h2>
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+              <line x1="16" y1="2" x2="16" y2="6"></line>
+              <line x1="8" y1="2" x2="8" y2="6"></line>
+              <line x1="3" y1="10" x2="21" y2="10"></line>
+            </svg>
+            Room Management
+          </h2>
+          
+          <!-- Create Room -->
+          <div class="room-control">
+            <button id="create-room-btn" type="button" class="btn-primary" aria-label="Create a new room">
+              <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+              </svg>
+              <span>Create New Room</span>
+            </button>
+            <p class="hint" id="created-room-hint" hidden aria-live="polite">
+              Room created! Share this ID: <strong id="room-id-display"></strong>
+            </p>
+          </div>
+          
+          <!-- Join Room -->
+          <div class="room-control">
+            <div class="input-group">
+              <input 
+                id="join-room-input" 
+                type="text" 
+                placeholder="Enter room ID" 
+                pattern="[A-Za-z0-9]{6}" 
+                maxlength="6"
+                aria-label="Room ID"
+                inputmode="text"
+                autocomplete="off"
+                autocapitalize="off"
+              />
+              <button id="join-room-btn" type="button" class="btn-secondary" aria-label="Join room">
+                <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
+                  <polyline points="10 17 15 12 10 7"></polyline>
+                  <line x1="15" y1="12" x2="3" y2="12"></line>
+                </svg>
+                <span>Join</span>
+              </button>
+            </div>
+          </div>
+          
+          <!-- Current Room Status -->
+          <div id="room-status" class="status-indicator">
+            <p id="current-room" class="muted">Not connected to any room</p>
+            <p id="user-role" class="muted" hidden></p>
+            <button id="leave-room-btn" class="btn-small btn-danger" hidden aria-label="Leave current room">
+              <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                <polyline points="16 17 21 12 16 7"></polyline>
+                <line x1="21" y1="12" x2="9" y2="12"></line>
+              </svg>
+              Leave Room
+            </button>
+          </div>
+        </section>
+
+        <!-- Speech Controls Section -->
+        <section id="controls" class="card" aria-label="Speech Controls">
+          <h2>
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+              <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+            </svg>
+            Speech Controls
+          </h2>
+          
+          <!-- Browser Support Warning -->
+          <div id="support-warning" class="alert alert-warning" hidden role="alert">
+            <svg class="alert-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="12" y1="8" x2="12" y2="12"></line>
+              <line x1="12" y1="16" x2="12.01" y2="16"></line>
+            </svg>
+            <span>Speech recognition not supported. Please use Chrome, Edge, or Safari.</span>
+          </div>
+          
+          <!-- Mobile Tips -->
+          <div id="mobile-tips" class="alert alert-info" hidden role="alert">
+            <svg class="alert-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <circle cx="12" cy="12" r="10"></circle>
+              <path d="M12 16v-4"></path>
+              <path d="M12 8h.01"></path>
+            </svg>
+            <span>Mobile: Grant microphone permission when prompted. Speech will auto-restart between pauses.</span>
+          </div>
+          
+          <!-- Speech Buttons -->
+          <div class="button-group">
+            <button id="start-btn" disabled class="btn-primary btn-large" aria-label="Start speaking">
+              <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+                <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+                <line x1="12" y1="19" x2="12" y2="23"></line>
+                <line x1="8" y1="23" x2="16" y2="23"></line>
+              </svg>
+              <span>Start Speaking</span>
+            </button>
+            <button id="stop-btn" disabled class="btn-secondary btn-large" aria-label="Stop speaking">
+              <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <rect x="6" y="6" width="12" height="12"></rect>
+              </svg>
+              <span>Stop</span>
+            </button>
+          </div>
+          
+          <!-- Live Transcript Display -->
+          <div class="transcript-container">
+            <h3>
+              <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+              </svg>
+              Live Transcript 
+              <span class="streaming-indicator" id="streaming-dot" hidden>●</span>
+            </h3>
+            <div id="live-transcript" class="transcript" aria-live="polite" aria-atomic="true">
+              <span class="placeholder">Your words will appear here as you speak...</span>
+            </div>
+          </div>
+        </section>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main role="main" class="main-content">
+      <button id="toggle-messages" class="expand-btn" aria-label="Toggle messages fullscreen" aria-expanded="false">
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+          <path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/>
+        </svg>
+      </button>
+      
+      <!-- Messages Section -->
+      <section id="messages" class="card messages-card" aria-label="Room Messages">
+        <div class="section-header">
+          <h2>
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+            </svg>
+            <span>Messages</span>
+          </h2>
+          <button id="clear-messages-btn" class="btn-small btn-secondary" hidden aria-label="Clear all messages">
+            <svg class="btn-icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <polyline points="3 6 5 6 21 6"></polyline>
+              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+            </svg>
+            <span>Clear</span>
+          </button>
+        </div>
+        <div id="message-container">
+          <ul id="message-list" role="log" aria-live="polite" aria-atomic="false"></ul>
+          <div id="empty-state" class="empty-state" aria-hidden="false">
+            <svg class="empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+              <line x1="9" y1="9" x2="15" y2="9"></line>
+              <line x1="9" y1="13" x2="15" y2="13"></line>
+            </svg>
+            <p>No messages yet. Create or join a room to start!</p>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- Footer -->
+  <footer role="contentinfo">
+    <small>
+      <a href="https://github.com/bhanusiddhannagari/bhanusiddhannagari.github.io" target="_blank" rel="noopener noreferrer">
+        <svg class="footer-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+          <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+        </svg>
+        GitHub
+      </a>
+    </small>
+  </footer>
+
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+  
+  <!-- Application Scripts -->
+  <script src="../src/firebase-config.js"></script>
+  <script src="../src/speech.js"></script>
+  <script src="../src/app.js"></script>
+</body>
+</html>
