@@ -99,18 +99,16 @@
     const recognizer = new SpeechRecognition();
     recognizer.lang = lang;
     
-    // Mobile-specific settings
+    // Use continuous mode for both mobile and desktop
+    recognizer.continuous = true;
+    recognizer.interimResults = true;
+    recognizer.maxAlternatives = 1;
+    
     if (isMobile) {
-      recognizer.continuous = false; // Better for mobile - restart manually
-      recognizer.interimResults = true;
-      console.log('[Speech] Mobile mode: continuous=false, auto-restart enabled');
+      console.log('[Speech] Mobile mode: continuous=true, stable recognition');
     } else {
-      recognizer.continuous = continuous;
-      recognizer.interimResults = interim;
       console.log('[Speech] Desktop mode: continuous=true');
     }
-    
-    recognizer.maxAlternatives = 1;
 
     // Track recognition state
     let isRecognizing = false;
@@ -185,7 +183,7 @@
       }
     };
 
-    // End callback with smart auto-restart
+    // End callback with smart auto-restart only if needed
     recognizer.onend = () => {
       isRecognizing = false;
       console.log('[Speech] Recognition ended, shouldBeActive:', shouldBeActive);
@@ -194,31 +192,19 @@
         onEnd();
       }
       
-      // Auto-restart if we should still be active
+      // Only auto-restart if unexpectedly ended while should be active
       if (shouldBeActive && !restartTimeout) {
-        const delay = isMobile ? 300 : 100; // Longer delay for mobile
-        console.log(`[Speech] Scheduling restart in ${delay}ms`);
+        const delay = isMobile ? 500 : 200;
+        console.log(`[Speech] Unexpected end - scheduling restart in ${delay}ms`);
         
         restartTimeout = setTimeout(() => {
           restartTimeout = null;
           if (shouldBeActive && !isRecognizing) {
             try {
-              console.log('[Speech] Auto-restarting recognition');
-              recognizer.start();
+              console.log('[Speech] Auto-restarting after unexpected end');
+              originalStart();
             } catch (e) {
               console.warn('[Speech] Failed to auto-restart:', e.message);
-              // Try again after a longer delay
-              if (e.name === 'InvalidStateError') {
-                setTimeout(() => {
-                  if (shouldBeActive && !isRecognizing) {
-                    try {
-                      recognizer.start();
-                    } catch (err) {
-                      console.error('[Speech] Second restart attempt failed:', err);
-                    }
-                  }
-                }, 500);
-              }
             }
           }
         }, delay);
