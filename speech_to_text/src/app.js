@@ -63,15 +63,6 @@
   }
 
   /**
-   * Escape HTML to prevent XSS attacks
-   */
-  function escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-  }
-
-  /**
    * Save room state to localStorage
    */
   function saveRoomState(roomId, isCreator) {
@@ -174,9 +165,6 @@
     
     // Streaming state
     currentMessageRef: null,
-    currentWords: [],
-    lastWordTimestamp: 0,
-    pauseTimer: null,
     
     // UI state
     stopAutoScroll: false,
@@ -203,12 +191,7 @@
    * Initialize the application
    */
   async function init() {
-    console.log('[App] Initializing Speech Rooms...');
-    console.log('[App] Session ID:', State.sessionId);
-    
-    // Detect mobile device
     const isMobile = window.innerWidth < 1024;
-    console.log('[App] Device type:', isMobile ? 'Mobile' : 'Desktop');
     
     await initSpeechRecognition();
     attachEventListeners();
@@ -219,10 +202,9 @@
       DOM.sidebar.classList.add('collapsed');
       const icon = DOM.toggleSidebarBtn?.querySelector('svg path');
       if (icon) {
-        icon.setAttribute('d', 'M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6z'); // Right chevron
+        icon.setAttribute('d', 'M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6z');
       }
     }
-    console.log('[UI] Layout state restored:', { sidebarCollapsed });
     
     // Update ARIA attributes
     if (DOM.toggleSidebarBtn) {
@@ -235,7 +217,6 @@
     // Restore previous room if available
     const savedRoom = restoreRoomState();
     if (savedRoom) {
-      console.log('[App] Restoring previous room:', savedRoom.roomId);
       enterRoom(savedRoom.roomId, savedRoom.isCreator);
     }
     
@@ -246,8 +227,7 @@
     window.addEventListener('resize', () => {
       clearTimeout(resizeTimer);
       resizeTimer = setTimeout(() => {
-        const newIsMobile = window.innerWidth < 1024;
-        console.log('[App] Viewport changed:', newIsMobile ? 'Mobile' : 'Desktop');
+        // Handle resize if needed
       }, 250);
     });
   }
@@ -259,15 +239,9 @@
    * Initialize speech recognition
    */
   async function initSpeechRecognition() {
-    console.log('[App] Initializing speech recognition...');
-    
-    // Create speech recognizer (now async for mobile permission)
     State.speechRecognizer = await window.createSpeechRecognizer({
       lang: 'en-US',
-      continuous: true,
-      interim: true,
       onResult: handleSpeechResult,
-      onWord: handleWord,
       onError: handleSpeechError,
       onStart: handleSpeechStart,
       onEnd: handleSpeechEnd
@@ -277,21 +251,9 @@
       DOM.supportWarning.hidden = false;
       DOM.startBtn.disabled = true;
       DOM.stopBtn.disabled = true;
-      console.error('[App] Speech recognition not supported');
-    } else {
-      console.log('[App] Speech recognition initialized successfully');
-      // Show mobile-specific info if needed
-      if (window.isMobileSpeech && DOM.mobileTips) {
-        DOM.mobileTips.hidden = false;
-        console.log('[App] Mobile speech mode enabled');
-        
-        // Hide tips after 8 seconds
-        setTimeout(() => {
-          if (DOM.mobileTips) {
-            DOM.mobileTips.hidden = true;
-          }
-        }, 8000);
-      }
+    } else if (window.isMobileSpeech && DOM.mobileTips) {
+      DOM.mobileTips.hidden = false;
+      setTimeout(() => DOM.mobileTips.hidden = true, 8000);
     }
   }
 
@@ -316,9 +278,6 @@
     }
     
     // Messages expand toggle
-    if (DOM.toggleMessagesBtn) {
-      DOM.toggleMessagesBtn.addEventListener('click', toggleSidebar);
-    }
     if (DOM.toggleMessagesBtn) {
       DOM.toggleMessagesBtn.addEventListener('click', toggleMessages);
     }
@@ -354,18 +313,10 @@
   }
 
   /**
-   * Generate a unique session ID for this user
-   */
-  function generateSessionId() {
-    return 'user_' + Math.random().toString(36).substring(2, 10) + Date.now().toString(36);
-  }
-
-  /**
    * Handle room creation
    */
   function handleCreateRoom() {
     const newRoomId = generateRoomId();
-    console.log('[Room] Creating new room:', newRoomId);
     
     enterRoom(newRoomId, true);
     
@@ -396,7 +347,6 @@
       return;
     }
     
-    console.log('[Room] Joining room:', roomId);
     enterRoom(roomId, false);
   }
 
@@ -405,8 +355,6 @@
    */
   function handleLeaveRoom() {
     if (!State.roomId) return;
-    
-    console.log('[Room] Leaving room:', State.roomId);
     
     // Stop speech if active
     if (State.isListening && State.speechRecognizer) {
@@ -462,7 +410,6 @@
       
       // Save state to localStorage
       localStorage.setItem('sidebarCollapsed', isCollapsed);
-      console.log('[UI] Sidebar', isCollapsed ? 'collapsed' : 'expanded');
     }
   }
 
@@ -472,7 +419,11 @@
   function toggleMessages() {
     const messagesSection = document.getElementById('messages');
     if (messagesSection) {
-      messagesSection.classList.toggle('hidden-mobile');
+      messagesSection.classList.toggle('expanded');
+      const isExpanded = messagesSection.classList.contains('expanded');
+      if (DOM.toggleMessagesBtn) {
+        DOM.toggleMessagesBtn.setAttribute('aria-expanded', isExpanded);
+      }
     }
   }
 
@@ -513,10 +464,7 @@
    * Subscribe to room messages and metadata
    */
   function subscribeToRoom(roomId) {
-    if (!window.firebaseDb) {
-      console.warn('[Firebase] Database not initialized');
-      return;
-    }
+    if (!window.firebaseDb) return;
 
     // Unsubscribe from previous room if any
     if (State.messagesRef) {
@@ -556,7 +504,9 @@
     
     // If we have interim results, update or create current streaming message
     if (interimTranscript) {
-      DOM.liveTranscript.innerHTML = `<span style="opacity:0.7">${interimTranscript}</span>`;
+      // Safe text content update (prevents XSS)
+      DOM.liveTranscript.textContent = interimTranscript;
+      DOM.liveTranscript.style.opacity = '0.7';
       
       if (!State.currentMessageRef) {
         // Create new streaming message
@@ -576,31 +526,35 @@
     }
     
     // If we have final results, finalize the message
-    if (finalTranscript && State.currentMessageRef) {
-      State.currentMessageRef.update({
-        text: finalTranscript,
-        timestamp: now,
-        streaming: false
-      });
-      State.currentMessageRef = null;
+    if (finalTranscript) {
+      if (State.currentMessageRef) {
+        // Update existing message
+        State.currentMessageRef.update({
+          text: finalTranscript,
+          timestamp: now,
+          streaming: false
+        });
+        State.currentMessageRef = null;
+      } else {
+        // Create new final message (can happen if interim results were skipped)
+        State.messagesRef.push({
+          text: finalTranscript,
+          timestamp: now,
+          from: State.sessionId,
+          streaming: false
+        });
+      }
+      
+      // Reset live transcript display
       DOM.liveTranscript.innerHTML = '<span class="placeholder">Your words will appear here as you speak...</span>';
+      DOM.liveTranscript.style.opacity = '';
     }
-  }
-
-  /**
-   * Handle individual word recognition (backup, not used with interim results)
-   */
-  function handleWord(word) {
-    // Not used when interim results are enabled
-    console.log('[Speech] Word recognized:', word);
   }
 
   /**
    * Handle speech recognition errors
    */
   function handleSpeechError(event) {
-    console.error('[Speech] Error:', event.error, event);
-    
     const errorMessages = {
       'no-speech': 'No speech detected. Please try again.',
       'audio-capture': 'Microphone not accessible. Please check permissions.',
@@ -630,7 +584,6 @@
    * Handle speech recognition start
    */
   function handleSpeechStart() {
-    console.log('[Speech] Started listening');
     State.isListening = true;
     DOM.streamingDot.hidden = false;
     updateUI();
@@ -640,7 +593,6 @@
    * Handle speech recognition end
    */
   function handleSpeechEnd() {
-    console.log('[Speech] Stopped listening');
     State.isListening = false;
     DOM.streamingDot.hidden = true;
     updateUI();
@@ -651,12 +603,7 @@
    */
   function handleStartSpeech() {
     if (!State.speechRecognizer) return;
-    
-    try {
-      State.speechRecognizer.start();
-    } catch (error) {
-      console.warn('[Speech] Start called while active:', error);
-    }
+    State.speechRecognizer.start();
   }
 
   /**
@@ -665,6 +612,19 @@
   function handleStopSpeech() {
     if (State.speechRecognizer) {
       State.speechRecognizer.stop();
+    }
+    // Finalize any pending streaming message
+    if (State.currentMessageRef) {
+      const currentText = DOM.liveTranscript.textContent;
+      // Only finalize if there's actual text (not just placeholder)
+      if (currentText && !currentText.includes('Your words will appear')) {
+        State.currentMessageRef.update({
+          text: currentText,
+          timestamp: Date.now(),
+          streaming: false
+        });
+      }
+      State.currentMessageRef = null;
     }
   }
 
@@ -798,15 +758,8 @@
    */
   function resetStreamingState() {
     State.currentMessageRef = null;
-    State.currentWords = [];
-    State.lastWordTimestamp = 0;
-    
-    if (State.pauseTimer) {
-      clearTimeout(State.pauseTimer);
-      State.pauseTimer = null;
-    }
-    
     DOM.liveTranscript.innerHTML = '<span class="placeholder">Your words will appear here as you speak...</span>';
+    DOM.liveTranscript.style.opacity = '';
     DOM.streamingDot.hidden = true;
   }
 
