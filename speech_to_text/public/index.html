@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Real-time speech-to-text messaging with live word streaming" />
+  <title>Speech Rooms - Real-time Speech-to-Text Messaging</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="icon" type="image/png" href="../assets/favicon.png" />
+</head>
+<body>
+  <!-- Header -->
+  <header role="banner">
+    <h1>🎤 Speech Rooms</h1>
+    <p class="tagline">Real-time speech-to-text with word-by-word streaming</p>
+  </header>
+
+  <!-- Main Content -->
+  <main role="main">
+    
+    <!-- Room Management Section -->
+    <section id="room-section" class="card" aria-label="Room Management">
+      <h2>Room Management</h2>
+      
+      <!-- Create Room -->
+      <div class="room-control">
+        <button id="create-room-btn" type="button" class="btn-primary" aria-label="Create a new room">
+          ➕ Create New Room
+        </button>
+        <p class="hint" id="created-room-hint" hidden aria-live="polite">
+          Room created! Share this ID: <strong id="room-id-display"></strong>
+        </p>
+      </div>
+      
+      <!-- Join Room -->
+      <div class="room-control">
+        <div class="input-group">
+          <input 
+            id="join-room-input" 
+            type="text" 
+            placeholder="Enter room ID to join" 
+            pattern="[A-Za-z0-9]{6}" 
+            maxlength="6"
+            aria-label="Room ID"
+          />
+          <button id="join-room-btn" type="button" class="btn-secondary" aria-label="Join room">
+            🚪 Join Room
+          </button>
+        </div>
+      </div>
+      
+      <!-- Current Room Status -->
+      <div id="room-status" class="status-indicator">
+        <p id="current-room" class="muted">Not connected to any room</p>
+        <p id="user-role" class="muted" hidden></p>
+      </div>
+    </section>
+
+    <!-- Speech Controls Section -->
+    <section id="controls" class="card" aria-label="Speech Controls">
+      <h2>Speech Controls</h2>
+      
+      <!-- Browser Support Warning -->
+      <div id="support-warning" class="alert alert-warning" hidden role="alert">
+        ⚠️ Your browser does not support Web Speech API. Please use the latest Chrome or Edge.
+      </div>
+      
+      <!-- Speech Buttons -->
+      <div class="button-group">
+        <button id="start-btn" disabled class="btn-primary btn-large" aria-label="Start speaking">
+          🎙️ Start Speaking
+        </button>
+        <button id="stop-btn" disabled class="btn-secondary btn-large" aria-label="Stop speaking">
+          ⏹️ Stop
+        </button>
+      </div>
+      
+      <!-- Live Transcript Display -->
+      <div class="transcript-container">
+        <h3>Live Transcript <span class="streaming-indicator" id="streaming-dot" hidden>●</span></h3>
+        <div id="live-transcript" class="transcript" aria-live="polite" aria-atomic="true">
+          <span class="placeholder">Your words will appear here as you speak...</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Messages Section -->
+    <section id="messages" class="card" aria-label="Room Messages">
+      <div class="section-header">
+        <h2>Messages</h2>
+        <button id="clear-messages-btn" class="btn-small btn-secondary" hidden aria-label="Clear messages">
+          🗑️ Clear
+        </button>
+      </div>
+      <div id="message-container">
+        <ul id="message-list" role="log" aria-live="polite" aria-atomic="false"></ul>
+        <div id="empty-state" class="empty-state">
+          <p>No messages yet. Create or join a room to get started!</p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer role="contentinfo">
+    <p>
+      <small>
+        Built with Web Speech API + Firebase + GitHub Pages | 
+        <a href="https://github.com/" target="_blank" rel="noopener noreferrer">View Source</a>
+      </small>
+    </p>
+  </footer>
+
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+  
+  <!-- Application Scripts -->
+  <script src="../src/firebase-config.js"></script>
+  <script src="../src/speech.js"></script>
+  <script src="../src/app.js"></script>
+</body>
+</html>
